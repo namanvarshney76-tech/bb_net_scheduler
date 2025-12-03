@@ -1221,7 +1221,8 @@ Total errors: {len(self.execution_stats['errors'])}
                 for i, error in enumerate(self.execution_stats['errors'][:5], 1):
                     body_html += f'<li class="error">{error}</li>'
                 if len(self.execution_stats['errors']) > 5:
-                    body_html += f'<li>... and {len(self.execution_stats['errors']) - 5} more errors</li>'
+                    # FIXED: Use double quotes for the dictionary key to avoid syntax error
+                    body_html += f'<li>... and {len(self.execution_stats["errors"]) - 5} more errors</li>'
                 body_html += "</ul>"
             else:
                 body_html += '<p style="color: green;">No errors encountered.</p>'
