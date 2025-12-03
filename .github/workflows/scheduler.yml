@@ -41,8 +41,11 @@ jobs:
           echo "$GOOGLE_TOKEN" | base64 -d > token.json
           echo "✅ Credentials created from GitHub Secrets"
       
-      # 5. Run automation
+      # 5. Run automation with environment variables
       - name: Run BigBasket Automation
+        env:
+          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+          GOOGLE_TOKEN: ${{ secrets.GOOGLE_TOKEN }}
         run: |
           echo "🚀 Starting BigBasket Automation..."
           python app.py --once
