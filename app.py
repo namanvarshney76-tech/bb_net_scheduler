@@ -75,7 +75,7 @@ class BigBasketScheduler:
         self.excel_config = {
             'excel_folder_id': '1fdio9_h28UleeRjgRnWF32S8kg_fgWbs',
             'spreadsheet_id': '170WUaPhkuxCezywEqZXJtHRw3my3rpjB9lJOvfLTeKM',
-            'sheet_name': 'test',
+            'sheet_name': 'bbalertgrn_2',
             'summary_sheet_name': 'net_workflow_log',
             'header_row': 2
         }
