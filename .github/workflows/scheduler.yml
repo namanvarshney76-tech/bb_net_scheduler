@@ -45,7 +45,7 @@ jobs:
       - name: Run BigBasket Automation
         run: |
           echo "🚀 Starting BigBasket Automation..."
-          python app.py --run-once
+          python app.py --once
           echo "✅ Automation completed"
       
       # 6. Cleanup sensitive files
