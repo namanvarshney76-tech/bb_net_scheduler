@@ -99,13 +99,11 @@ class BigBasketScheduler:
     def _setup_credentials_from_env(self):
         """Setup credentials from environment variables for GitHub Actions"""
         try:
-            # Check if we're in GitHub Actions
             if os.environ.get('GITHUB_ACTIONS') != 'true':
                 return True
                 
             logger.info("Setting up credentials from environment variables...")
             
-            # Get credentials JSON from environment
             credentials_json = os.environ.get('GOOGLE_CREDENTIALS')
             token_encoded = os.environ.get('GOOGLE_TOKEN')
             
@@ -118,14 +116,29 @@ class BigBasketScheduler:
                 return False
             
             try:
-                # Parse and save credentials.json
-                credentials_data = json.loads(credentials_json)
+                # Try to decode as base64 first
+                try:
+                    credentials_decoded = base64.b64decode(credentials_json).decode('utf-8')
+                    credentials_data = json.loads(credentials_decoded)
+                    logger.info("Decoded base64 credentials")
+                except:
+                    # If that fails, treat as raw JSON
+                    credentials_data = json.loads(credentials_json)
+                    logger.info("Using raw JSON credentials")
+                
+                # Save credentials.json
                 with open('credentials.json', 'w') as f:
                     json.dump(credentials_data, f)
                 logger.info("Saved credentials.json from environment")
                 
                 # Decode and save token.json
-                token_json = base64.b64decode(token_encoded).decode('utf-8')
+                try:
+                    token_json = base64.b64decode(token_encoded).decode('utf-8')
+                    logger.info("Decoded base64 token")
+                except:
+                    token_json = token_encoded
+                    logger.info("Using raw token")
+                
                 with open('token.json', 'w') as f:
                     f.write(token_json)
                 logger.info("Saved token.json from environment")
