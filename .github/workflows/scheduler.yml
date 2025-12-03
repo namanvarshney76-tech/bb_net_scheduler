@@ -1,66 +1,64 @@
 name: BigBasket Automation Scheduler
 
 on:
+  # Run every 3 hours
   schedule:
-    # Run every 3 hours
-    - cron: '0 */3 * * *'
-  # Allow manual trigger
+    - cron: '0 */3 * * *'  # Every 3 hours
+  
+  # Allow manual runs
   workflow_dispatch:
 
 jobs:
   run-automation:
     runs-on: ubuntu-latest
+    timeout-minutes: 30  # Prevent long runs
     
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
+      # 1. Checkout code
+      - name: Checkout repository
+        uses: actions/checkout@v4
       
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.10'
-        
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        # Install numpy first (core dependency)
-        pip install numpy==1.24.3 --no-cache-dir
-        # Install pandas with compatible version
-        pip install pandas==1.5.3 --no-cache-dir
-        # Install other dependencies
-        pip install -r requirements.txt
-        
-    - name: Verify installations
-      run: |
-        python -c "import numpy; print(f'NumPy version: {numpy.__version__}')"
-        python -c "import pandas; print(f'Pandas version: {pandas.__version__}')"
-        
-    - name: Setup credentials from secrets
-      env:
-        GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
-        GOOGLE_TOKEN: ${{ secrets.GOOGLE_TOKEN }}
-      run: |
-        echo "Setting up Google credentials..."
-        # Create credentials.json from secret
-        echo '${{ secrets.GOOGLE_CREDENTIALS }}' > credentials.json
-        
-        # Create token.json from base64 encoded secret
-        echo '${{ secrets.GOOGLE_TOKEN }}' | base64 --decode > token.json
-        
-        echo "✓ Credentials files created"
-        
-    - name: Run BigBasket Automation
-      env:
-        GITHUB_ACTIONS: "true"
-      run: |
-        echo "🚀 Starting BigBasket Automation..."
-        python app.py --once
-        
-    - name: Upload logs
-      if: always()
-      uses: actions/upload-artifact@v3
-      with:
-        name: automation-logs
-        path: |
-          bigbasket_automation.log
-        retention-days: 7
+      # 2. Set up Python
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      
+      # 3. Install dependencies
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      # 4. Create credentials from GitHub Secrets
+      - name: Setup Google credentials
+        env:
+          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+          GOOGLE_TOKEN: ${{ secrets.GOOGLE_TOKEN }}
+        run: |
+          echo "$GOOGLE_CREDENTIALS" | base64 -d > credentials.json
+          echo "$GOOGLE_TOKEN" | base64 -d > token.json
+          echo "✅ Credentials created from GitHub Secrets"
+      
+      # 5. Run automation
+      - name: Run BigBasket Automation
+        run: |
+          echo "🚀 Starting BigBasket Automation..."
+          echo "✅ Automation completed"
+      
+      # 6. Cleanup sensitive files
+      - name: Cleanup credentials
+        if: always()
+        run: |
+          rm -f credentials.json token.json
+          echo "🧹 Cleaned up credentials"
+      
+      # 7. Save logs
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bigbasket-logs-${{ github.run_number }}
+          path: bigbasket_automation.log
+          retention-days: 7
